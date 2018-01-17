@@ -1,0 +1,16 @@
+--- original
++++ mac_docker_support
+@@ -294,6 +294,13 @@
+         # to allow the connection here.  return 0 to deny
+         data = client.recv(1024)
+         log.info("Server:onConnect %r [%s]", addr, data)
++
++        try:
++            addr = (socket.gethostbyname('docker.for.mac.localhost'), addr[1])
++            log.info("Docker on mac detected, connecting to docker.for.mac.localhost %r [%s]", addr, data)
++        except socket.error:
++            pass
++
+         try:
+             data = data.decode('utf-8')
+         except (UnicodeEncodeError, UnicodeDecodeError), e:
