@@ -1,22 +1,28 @@
---- original
-+++ mac_docker_support
-@@ -294,6 +294,19 @@
+--- pydbgpproxy.original	2018-01-24 15:02:46.491662000 +0000
++++ pydbgpproxy.edithere	2018-01-24 15:03:15.842313447 +0000
+@@ -289,11 +289,25 @@
+         arg = arg.split()
+         return cmd, arg, line
+ 
++    def redirectForSpecialDockerDns(self, addr):
++        for hostname in ('docker.for.mac.localhost', 'docker.for.win.localhost'):
++            try:
++                ip = socket.gethostbyname(hostname)
++                if ip == '127.0.0.1':
++                    continue
++                log.info("Special docker dns entry detected %s %s", hostname, ip)
++                return (ip, addr[1]);
++            except socket.error:
++                pass
++
++        return addr
++
+     def startNewSession(self, client, addr):
+         # before any communication, we can decide if we want
          # to allow the connection here.  return 0 to deny
          data = client.recv(1024)
          log.info("Server:onConnect %r [%s]", addr, data)
-+
-+        try:
-+            addr = (socket.gethostbyname('docker.for.mac.localhost'), addr[1])
-+            log.info("Docker on mac detected, connecting to docker.for.mac.localhost %r [%s]", addr, data)
-+        except socket.error:
-+            pass
-+
-+        try:
-+            addr = (socket.gethostbyname('docker.for.win.localhost'), addr[1])
-+            log.info("Docker on win detected, connecting to docker.for.win.localhost %r [%s]", addr, data)
-+        except socket.error:
-+            pass
-+
++        addr = self.redirectForSpecialDockerDns(addr);
          try:
              data = data.decode('utf-8')
          except (UnicodeEncodeError, UnicodeDecodeError), e:
